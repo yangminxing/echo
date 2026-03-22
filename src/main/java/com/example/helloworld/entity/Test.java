@@ -1,0 +1,18 @@
+package com.example.helloworld.entity;
+
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+import lombok.Data;
+
+@Data
+@TableName("test")
+public class Test {
+
+    @TableId(type = IdType.ASSIGN_UUID)
+    private String id;
+
+    private String name;
+
+    private String age;
+}
