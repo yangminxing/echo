@@ -59,6 +59,14 @@
             <artifactId>lombok</artifactId>
             <optional>true</optional>
         </dependency>
+
+        <!-- 工作流flowable jar包 -->
+        <dependency>
+            <groupId>org.flowable</groupId>
+            <artifactId>flowable-spring-boot-starter</artifactId>
+            <version>6.7.2</version>
+        </dependency>
+
     </dependencies>
 
     <build>

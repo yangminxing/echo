@@ -1,0 +1,29 @@
+graph TB
+    subgraph DesignTime[设计时 - 定义层]
+        A[业务定义<br/>数据模型]
+        B[表单定义<br/>界面布局]
+        C[流程定义<br/>BPMN流程]
+    end
+
+    subgraph Runtime[运行时 - 实例层]
+        D[业务实例<br/>数据行]
+        E[表单实例<br/>数据快照]
+        F[流程实例<br/>执行上下文]
+    end
+
+    A -- 绑定 --> B
+    A -- 绑定 --> C
+    A -- 实例化 --> D
+    B -- 实例化 --> E
+    C -- 实例化 --> F
+
+    F -- 驱动/关联 --> D
+    F -- 读写 --> E
+    D -- 一体两面 --> E
+
+    style A fill:#e1f5fe
+    style B fill:#e1f5fe
+    style C fill:#e1f5fe
+    style D fill:#fff9c4
+    style E fill:#fff9c4
+    style F fill:#fff9c4
