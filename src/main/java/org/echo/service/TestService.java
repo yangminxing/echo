@@ -1,7 +1,7 @@
-package com.example.helloworld.service;
+package org.echo.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.example.helloworld.entity.Test;
+import org.echo.entity.Test;
 
 public interface TestService extends IService<Test> {
 }

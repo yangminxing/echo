@@ -1,8 +1,8 @@
-package com.example.helloworld.mapper;
+package org.echo.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.example.helloworld.entity.Test;
 import org.apache.ibatis.annotations.Mapper;
+import org.echo.entity.Test;
 
 @Mapper
 public interface TestMapper extends BaseMapper<Test> {

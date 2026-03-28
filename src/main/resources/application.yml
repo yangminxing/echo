@@ -1,0 +1,34 @@
+server:
+  port: 8086
+
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3360/echo?characterEncoding=utf8&serverTimezone=GMT%2B8
+    username: root
+    password: MSTF#*@@J4W5
+
+mybatis-plus:
+  mapper-locations: classpath*:mapper/**/*.xml
+  type-aliases-package: org.echo.entity
+  configuration:
+    map-underscore-to-camel-case: true
+
+flowable:
+  # 配置自动建表
+  database-schema: root
+  database-schema-update: true
+  check-process-definitions: false
+  history-level: full
+  async-executor-activate: false
+  # 禁用不必要的模块
+  app:
+    enabled: false
+  dmn:
+    enabled: false
+  form:
+    enabled: false
+  content:
+    enabled: false
+  event-registry:
+    enabled: false
