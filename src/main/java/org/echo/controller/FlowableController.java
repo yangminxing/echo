@@ -23,11 +23,24 @@ public class FlowableController {
     @Autowired
     private FlowableService flowableService;
 
+    /**
+     * 获取Flowable系统信息
+     *
+     * @return 包含Flowable版本、数据库类型、部署数量、流程定义数量、流程实例数量等
+     */
     @GetMapping("/info")
     public Map<String, Object> getFlowableInfo() {
         return flowableService.getFlowableInfo();
     }
 
+    /**
+     * 从classpath资源部署流程
+     *
+     * @param resourceName classpath中的资源路径（如 processes/vacation.bpmn）
+     * @param processName  部署名称
+     * @param category     分类（可选）
+     * @return 部署结果，包含deploymentId和deploymentName
+     */
     @PostMapping("/deploy/classpath")
     public Map<String, Object> deployFromClasspath(@RequestParam String resourceName,
                                                     @RequestParam String processName,
@@ -45,6 +58,13 @@ public class FlowableController {
         return result;
     }
 
+    /**
+     * 通过文件上传部署流程
+     *
+     * @param file        上传的流程文件（BPMN格式）
+     * @param processName 部署名称
+     * @return 部署结果，包含deploymentId和deploymentName
+     */
     @PostMapping("/deploy/file")
     public Map<String, Object> deployFromFile(@RequestParam("file") MultipartFile file,
                                                @RequestParam String processName) {
@@ -65,6 +85,13 @@ public class FlowableController {
         return result;
     }
 
+    /**
+     * 分页查询部署记录
+     *
+     * @param start 起始索引，默认0
+     * @param limit 每页数量，默认20
+     * @return 包含data（部署列表）和total（总数）
+     */
     @GetMapping("/deployments")
     public Map<String, Object> getDeployments(@RequestParam(defaultValue = "0") int start,
                                               @RequestParam(defaultValue = "20") int limit) {
@@ -75,6 +102,13 @@ public class FlowableController {
         return result;
     }
 
+    /**
+     * 删除部署记录
+     *
+     * @param deploymentId 部署ID
+     * @param cascade      是否级联删除（true:同时删除流程实例）
+     * @return 删除操作结果
+     */
     @DeleteMapping("/deployments/{deploymentId}")
     public Map<String, Object> deleteDeployment(@PathVariable String deploymentId,
                                                  @RequestParam(defaultValue = "true") boolean cascade) {
@@ -89,6 +123,13 @@ public class FlowableController {
         return result;
     }
 
+    /**
+     * 分页查询流程定义
+     *
+     * @param start 起始索引，默认0
+     * @param limit 每页数量，默认20
+     * @return 包含data（流程定义列表）
+     */
     @GetMapping("/process-definitions")
     public Map<String, Object> getProcessDefinitions(@RequestParam(defaultValue = "0") int start,
                                                      @RequestParam(defaultValue = "20") int limit) {
@@ -98,6 +139,12 @@ public class FlowableController {
         return result;
     }
 
+    /**
+     * 获取指定流程定义信息
+     *
+     * @param processDefinitionId 流程定义ID
+     * @return 流程定义详情
+     */
     @GetMapping("/process-definitions/{processDefinitionId}")
     public Map<String, Object> getProcessDefinition(@PathVariable String processDefinitionId) {
         Map<String, Object> result = new HashMap<>();
@@ -112,6 +159,12 @@ public class FlowableController {
         return result;
     }
 
+    /**
+     * 获取流程定义的BPMN模型（包含所有节点、连线等信息）
+     *
+     * @param processDefinitionId 流程定义ID
+     * @return BPMN模型详情
+     */
     @GetMapping("/process-definitions/{processDefinitionId}/bpmn")
     public Map<String, Object> getBpmnModel(@PathVariable String processDefinitionId) {
         Map<String, Object> result = new HashMap<>();
@@ -126,6 +179,13 @@ public class FlowableController {
         return result;
     }
 
+    /**
+     * 启动流程实例
+     *
+     * @param processDefinitionKey 流程定义的key
+     * @param variables           流程变量（可选）
+     * @return 启动结果，包含processInstanceId、processDefinitionKey、businessKey
+     */
     @PostMapping("/process-instances/start")
     public Map<String, Object> startProcess(@RequestParam String processDefinitionKey,
                                             @RequestBody(required = false) Map<String, Object> variables) {
@@ -148,6 +208,13 @@ public class FlowableController {
         return result;
     }
 
+    /**
+     * 分页查询运行中的流程实例
+     *
+     * @param start 起始索引，默认0
+     * @param limit 每页数量，默认20
+     * @return 包含data（流程实例列表）和total（总数）
+     */
     @GetMapping("/process-instances")
     public Map<String, Object> getProcessInstances(@RequestParam(defaultValue = "0") int start,
                                                     @RequestParam(defaultValue = "20") int limit) {
@@ -158,6 +225,12 @@ public class FlowableController {
         return result;
     }
 
+    /**
+     * 获取指定流程实例详情
+     *
+     * @param processInstanceId 流程实例ID
+     * @return 流程实例详情
+     */
     @GetMapping("/process-instances/{processInstanceId}")
     public Map<String, Object> getProcessInstance(@PathVariable String processInstanceId) {
         Map<String, Object> result = new HashMap<>();
@@ -172,6 +245,13 @@ public class FlowableController {
         return result;
     }
 
+    /**
+     * 删除运行中的流程实例
+     *
+     * @param processInstanceId 流程实例ID
+     * @param reason            删除原因（可选，默认"Cancelled by user"）
+     * @return 删除操作结果
+     */
     @DeleteMapping("/process-instances/{processInstanceId}")
     public Map<String, Object> deleteProcessInstance(@PathVariable String processInstanceId,
                                                       @RequestParam(required = false) String reason) {
@@ -186,6 +266,12 @@ public class FlowableController {
         return result;
     }
 
+    /**
+     * 获取流程实例的所有变量
+     *
+     * @param processInstanceId 流程实例ID
+     * @return 变量集合
+     */
     @GetMapping("/process-instances/{processInstanceId}/variables")
     public Map<String, Object> getProcessVariables(@PathVariable String processInstanceId) {
         Map<String, Object> result = new HashMap<>();
@@ -200,6 +286,14 @@ public class FlowableController {
         return result;
     }
 
+    /**
+     * 设置流程实例的单个变量
+     *
+     * @param processInstanceId 流程实例ID
+     * @param variableName      变量名
+     * @param value             变量值
+     * @return 设置结果
+     */
     @PutMapping("/process-instances/{processInstanceId}/variables")
     public Map<String, Object> setProcessVariable(@PathVariable String processInstanceId,
                                                    @RequestParam String variableName,
@@ -215,6 +309,14 @@ public class FlowableController {
         return result;
     }
 
+    /**
+     * 根据办理人分页查询任务
+     *
+     * @param assignee 办理人（用户名）
+     * @param start    起始索引，默认0
+     * @param limit    每页数量，默认20
+     * @return 包含data（任务列表）和total（总数）
+     */
     @GetMapping("/tasks")
     public Map<String, Object> getTasks(@RequestParam String assignee,
                                          @RequestParam(defaultValue = "0") int start,
@@ -226,6 +328,14 @@ public class FlowableController {
         return result;
     }
 
+    /**
+     * 根据候选用户分页查询任务
+     *
+     * @param candidateUser 候选用户
+     * @param start         起始索引，默认0
+     * @param limit         每页数量，默认20
+     * @return 包含data（任务列表）
+     */
     @GetMapping("/tasks/candidate/{candidateUser}")
     public Map<String, Object> getTasksByCandidateUser(@PathVariable String candidateUser,
                                                         @RequestParam(defaultValue = "0") int start,
@@ -236,6 +346,12 @@ public class FlowableController {
         return result;
     }
 
+    /**
+     * 获取指定任务详情
+     *
+     * @param taskId 任务ID
+     * @return 任务详情
+     */
     @GetMapping("/tasks/{taskId}")
     public Map<String, Object> getTask(@PathVariable String taskId) {
         Map<String, Object> result = new HashMap<>();
@@ -250,6 +366,13 @@ public class FlowableController {
         return result;
     }
 
+    /**
+     * 完成任务
+     *
+     * @param taskId    任务ID
+     * @param variables 流程变量（可选，会设置到流程实例中）
+     * @return 操作结果
+     */
     @PostMapping("/tasks/{taskId}/complete")
     public Map<String, Object> completeTask(@PathVariable String taskId,
                                              @RequestBody(required = false) Map<String, Object> variables) {
@@ -268,6 +391,13 @@ public class FlowableController {
         return result;
     }
 
+    /**
+     * 指定任务的办理人
+     *
+     * @param taskId   任务ID
+     * @param assignee 新的办理人
+     * @return 操作结果
+     */
     @PutMapping("/tasks/{taskId}/assignee")
     public Map<String, Object> assignTask(@PathVariable String taskId,
                                             @RequestParam String assignee) {
@@ -282,6 +412,12 @@ public class FlowableController {
         return result;
     }
 
+    /**
+     * 获取任务的所有变量
+     *
+     * @param taskId 任务ID
+     * @return 变量集合
+     */
     @GetMapping("/tasks/{taskId}/variables")
     public Map<String, Object> getTaskVariables(@PathVariable String taskId) {
         Map<String, Object> result = new HashMap<>();
@@ -296,6 +432,14 @@ public class FlowableController {
         return result;
     }
 
+    /**
+     * 设置任务的单个变量
+     *
+     * @param taskId      任务ID
+     * @param variableName 变量名
+     * @param value        变量值
+     * @return 操作结果
+     */
     @PutMapping("/tasks/{taskId}/variables")
     public Map<String, Object> setTaskVariable(@PathVariable String taskId,
                                                  @RequestParam String variableName,
@@ -311,6 +455,13 @@ public class FlowableController {
         return result;
     }
 
+    /**
+     * 分页查询历史流程实例
+     *
+     * @param start 起始索引，默认0
+     * @param limit 每页数量，默认20
+     * @return 包含data（历史流程实例列表）
+     */
     @GetMapping("/history/process-instances")
     public Map<String, Object> getHistoricProcessInstances(@RequestParam(defaultValue = "0") int start,
                                                             @RequestParam(defaultValue = "20") int limit) {
@@ -320,6 +471,12 @@ public class FlowableController {
         return result;
     }
 
+    /**
+     * 获取指定历史流程实例详情
+     *
+     * @param processInstanceId 流程实例ID
+     * @return 历史流程实例详情
+     */
     @GetMapping("/history/process-instances/{processInstanceId}")
     public Map<String, Object> getHistoricProcessInstance(@PathVariable String processInstanceId) {
         Map<String, Object> result = new HashMap<>();
@@ -334,6 +491,14 @@ public class FlowableController {
         return result;
     }
 
+    /**
+     * 根据流程定义Key搜索历史流程实例
+     *
+     * @param processDefinitionKey 流程定义Key
+     * @param start                起始索引，默认0
+     * @param limit                每页数量，默认20
+     * @return 包含data（历史流程实例列表）
+     */
     @GetMapping("/history/process-instances/search")
     public Map<String, Object> searchHistoricProcessInstances(@RequestParam String processDefinitionKey,
                                                                @RequestParam(defaultValue = "0") int start,

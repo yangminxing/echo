@@ -16,7 +16,9 @@ public class SaTokenConfig implements WebMvcConfigurer {
                 .excludePathPatterns(
                         "/user/login",
                         "/user/logout",
-                        "/hello"
+                        "/hello",
+                        "/test/**",
+                        "/flowable/**"
                 );
     }
 }
