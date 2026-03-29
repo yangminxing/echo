@@ -167,15 +167,42 @@
                       <input type="checkbox" :value="index" v-model="selectedFields" />
                     </td>
                     <td>{{ index + 1 }}</td>
-                    <td>{{ field.fieldName }}</td>
-                    <td>{{ field.fieldComment }}</td>
-                    <td>{{ field.fieldLength }}</td>
-                    <td>{{ field.decimalPoint }}</td>
-                    <td>{{ field.defaultValue }}</td>
-                    <td>{{ field.fieldType }}</td>
-                    <td>{{ field.isPrimaryKey ? '是' : '否' }}</td>
-                    <td>{{ field.allowNull ? '是' : '否' }}</td>
-                    <td>{{ field.syncDatabase ? '是' : '否' }}</td>
+                    <td>
+                      <input type="text" v-model="field.fieldName" class="field-input" />
+                    </td>
+                    <td>
+                      <input type="text" v-model="field.fieldComment" class="field-input" />
+                    </td>
+                    <td>
+                      <input type="number" v-model="field.fieldLength" class="field-input small" />
+                    </td>
+                    <td>
+                      <input type="number" v-model="field.decimalPoint" class="field-input small" />
+                    </td>
+                    <td>
+                      <input type="text" v-model="field.defaultValue" class="field-input" />
+                    </td>
+                    <td>
+                      <select v-model="field.fieldType" class="field-input">
+                        <option value="varchar">varchar</option>
+                        <option value="text">text</option>
+                        <option value="int">int</option>
+                        <option value="bigint">bigint</option>
+                        <option value="decimal">decimal</option>
+                        <option value="datetime">datetime</option>
+                        <option value="date">date</option>
+                        <option value="blob">blob</option>
+                      </select>
+                    </td>
+                    <td>
+                      <input type="checkbox" v-model="field.isPrimaryKey" />
+                    </td>
+                    <td>
+                      <input type="checkbox" v-model="field.allowNull" />
+                    </td>
+                    <td>
+                      <input type="checkbox" v-model="field.syncDatabase" />
+                    </td>
                   </tr>
                   <tr v-if="editingForm.fields.length === 0">
                     <td colspan="11" class="empty-text">暂无字段，请点击新增添加</td>
@@ -196,7 +223,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
+import { tableDefinitionApi, TableDefinition, TableField } from '../../api/tableDefinition'
 
 interface TableInfo {
   tableType: string
@@ -205,18 +233,6 @@ interface TableInfo {
   version: number
   syncStatus: string
   createTime: string
-}
-
-interface FieldInfo {
-  fieldName: string
-  fieldComment: string
-  fieldLength: number
-  decimalPoint: number
-  defaultValue: string
-  fieldType: string
-  isPrimaryKey: boolean
-  allowNull: boolean
-  syncDatabase: boolean
 }
 
 interface FormInfo {
@@ -231,35 +247,10 @@ interface FormInfo {
   scrollBar: boolean
   pagination: boolean
   isTree: boolean
-  fields: FieldInfo[]
+  fields: TableField[]
 }
 
-const tableList = ref<TableInfo[]>([
-  {
-    tableType: '单表',
-    tableName: 'test_third_link',
-    tableDesc: '示例：三级联动例子',
-    version: 9,
-    syncStatus: '已同步',
-    createTime: '2020-02-25 19:15:06'
-  },
-  {
-    tableType: '单表',
-    tableName: 'oa_security_vehicle',
-    tableDesc: 'oa_security_vehicle',
-    version: 2,
-    syncStatus: '已同步',
-    createTime: '2020-01-06 19:44:11'
-  },
-  {
-    tableType: '单表',
-    tableName: 'oa_demo_bhan_wguan',
-    tableDesc: '包含网关工单',
-    version: 5,
-    syncStatus: '已同步',
-    createTime: '2021-01-08 11:49:55'
-  }
-])
+const tableList = ref<TableDefinition[]>([])
 
 const filter = reactive({
   tableType: '',
@@ -267,6 +258,7 @@ const filter = reactive({
 })
 
 const showDialog = ref(false)
+const loading = ref(false)
 const selectedFields = ref<number[]>([])
 const selectedTables = ref<string[]>([])
 
@@ -288,7 +280,7 @@ const editingForm = reactive<FormInfo>({
 const filteredTableList = computed(() => {
   return tableList.value.filter(item => {
     const matchType = !filter.tableType || item.tableType === filter.tableType
-    const matchDesc = !filter.tableDesc || item.tableDesc.includes(filter.tableDesc)
+    const matchDesc = !filter.tableDesc || (item.tableDesc && item.tableDesc.includes(filter.tableDesc))
     return matchType && matchDesc
   })
 })
@@ -296,6 +288,18 @@ const filteredTableList = computed(() => {
 const isAllSelected = computed(() => {
   return filteredTableList.value.length > 0 && filteredTableList.value.every(item => selectedTables.value.includes(item.tableName))
 })
+
+const loadTableList = async () => {
+  loading.value = true
+  try {
+    const res = await tableDefinitionApi.list()
+    tableList.value = res.data || []
+  } catch (error) {
+    console.error('加载表列表失败:', error)
+  } finally {
+    loading.value = false
+  }
+}
 
 const handleSelectAll = (event: Event) => {
   const target = event.target as HTMLInputElement
@@ -306,11 +310,19 @@ const handleSelectAll = (event: Event) => {
   }
 }
 
-const handleDeleteTables = () => {
+const handleDeleteTables = async () => {
   if (selectedTables.value.length === 0) return
   if (!confirm(`确定要删除选中的 ${selectedTables.value.length} 个表吗？`)) return
-  tableList.value = tableList.value.filter(item => !selectedTables.value.includes(item.tableName))
-  selectedTables.value = []
+  try {
+    for (const tableName of selectedTables.value) {
+      await tableDefinitionApi.delete(tableName)
+    }
+    await loadTableList()
+    selectedTables.value = []
+  } catch (error) {
+    console.error('删除表失败:', error)
+    alert('删除失败')
+  }
 }
 
 const handleCreateTable = () => {
@@ -332,31 +344,30 @@ const handleCreateTable = () => {
   showDialog.value = true
 }
 
-const handleEdit = (item: TableInfo) => {
-  Object.assign(editingForm, {
-    tableName: item.tableName,
-    tableDesc: item.tableDesc,
-    tableType: item.tableType,
-    formCategory: '业务表',
-    primaryKeyStrategy: 'UUID',
-    showCheckbox: false,
-    themeTemplate: 'default',
-    formStyle: 'default',
-    scrollBar: false,
-    pagination: true,
-    isTree: false,
-    fields: [
-      { fieldName: 'id', fieldComment: '主键', fieldLength: 36, decimalPoint: 0, defaultValue: 'String', fieldType: 'String', isPrimaryKey: true, allowNull: false, syncDatabase: true },
-      { fieldName: 'create_by', fieldComment: '创建人', fieldLength: 50, decimalPoint: 0, defaultValue: 'String', fieldType: 'String', isPrimaryKey: false, allowNull: true, syncDatabase: true },
-      { fieldName: 'create_time', fieldComment: '创建日期', fieldLength: 20, decimalPoint: 0, defaultValue: 'Datetime', fieldType: 'Datetime', isPrimaryKey: false, allowNull: true, syncDatabase: true },
-      { fieldName: 'update_by', fieldComment: '更新人', fieldLength: 50, decimalPoint: 0, defaultValue: 'String', fieldType: 'String', isPrimaryKey: false, allowNull: true, syncDatabase: true },
-      { fieldName: 'update_time', fieldComment: '更新日期', fieldLength: 20, decimalPoint: 0, defaultValue: 'Datetime', fieldType: 'Datetime', isPrimaryKey: false, allowNull: true, syncDatabase: true },
-      { fieldName: 'sys_org_code', fieldComment: '所属部门', fieldLength: 64, decimalPoint: 0, defaultValue: 'String', fieldType: 'String', isPrimaryKey: false, allowNull: true, syncDatabase: true },
-      { fieldName: 'province', fieldComment: '省', fieldLength: 32, decimalPoint: 0, defaultValue: 'String', fieldType: 'String', isPrimaryKey: false, allowNull: true, syncDatabase: true }
-    ]
-  })
-  selectedFields.value = []
-  showDialog.value = true
+const handleEdit = async (item: TableInfo) => {
+  try {
+    const res = await tableDefinitionApi.getByTableName(item.tableName)
+    const data = res.data
+    Object.assign(editingForm, {
+      tableName: data.tableName,
+      tableDesc: data.tableDesc || '',
+      tableType: data.tableType || '单表',
+      formCategory: data.formCategory || '业务表',
+      primaryKeyStrategy: data.primaryKeyStrategy || 'UUID',
+      showCheckbox: data.showCheckbox || false,
+      themeTemplate: data.themeTemplate || 'default',
+      formStyle: data.formStyle || 'default',
+      scrollBar: data.scrollBar || false,
+      pagination: data.pagination !== false,
+      isTree: data.isTree || false,
+      fields: data.fields || []
+    })
+    selectedFields.value = []
+    showDialog.value = true
+  } catch (error) {
+    console.error('加载表详情失败:', error)
+    alert('加载失败')
+  }
 }
 
 const handleCloseDialog = () => {
@@ -385,16 +396,39 @@ const handleDeleteFields = () => {
   selectedFields.value = []
 }
 
-const handleSave = () => {
-  const existingIndex = tableList.value.findIndex(item => item.tableName === editingForm.tableName)
-  if (existingIndex >= 0) {
-    Object.assign(tableList.value[existingIndex], {
+const handleSave = async () => {
+  try {
+    const isNew = !tableList.value.some(item => item.tableName === editingForm.tableName)
+    const data: TableDefinition = {
+      tableName: editingForm.tableName,
+      tableDesc: editingForm.tableDesc,
       tableType: editingForm.tableType,
-      tableDesc: editingForm.tableDesc
-    })
+      formCategory: editingForm.formCategory,
+      primaryKeyStrategy: editingForm.primaryKeyStrategy,
+      showCheckbox: editingForm.showCheckbox,
+      themeTemplate: editingForm.themeTemplate,
+      formStyle: editingForm.formStyle,
+      scrollBar: editingForm.scrollBar,
+      pagination: editingForm.pagination,
+      isTree: editingForm.isTree,
+      fields: editingForm.fields
+    }
+    if (isNew) {
+      await tableDefinitionApi.create(data)
+    } else {
+      await tableDefinitionApi.update(data)
+    }
+    showDialog.value = false
+    await loadTableList()
+  } catch (error) {
+    console.error('保存失败:', error)
+    alert('保存失败')
   }
-  showDialog.value = false
 }
+
+onMounted(() => {
+  loadTableList()
+})
 </script>
 
 <style scoped>
@@ -548,22 +582,14 @@ const handleSave = () => {
   width: 90%;
   max-width: 1200px;
   max-height: 90vh;
-  border: none;
+  overflow: auto;
+  background: #fff;
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  padding: 0;
-  overflow: hidden;
-}
-
-.edit-dialog::backdrop {
-  background: rgba(0, 0, 0, 0.45);
 }
 
 .dialog-content {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  max-height: 90vh;
+  padding: 0;
 }
 
 .dialog-header {
@@ -572,22 +598,20 @@ const handleSave = () => {
   align-items: center;
   padding: 16px 20px;
   border-bottom: 1px solid #f0f0f0;
-  background: #fff;
 }
 
 .dialog-header h3 {
   margin: 0;
   font-size: 18px;
-  color: #333;
+  font-weight: 600;
 }
 
 .btn-close {
   background: none;
   border: none;
   font-size: 24px;
-  color: #999;
   cursor: pointer;
-  line-height: 1;
+  color: #999;
 }
 
 .btn-close:hover {
@@ -595,35 +619,39 @@ const handleSave = () => {
 }
 
 .dialog-body {
-  flex: 1;
-  overflow-y: auto;
   padding: 20px;
-  background: #fff;
+  max-height: calc(90vh - 130px);
+  overflow-y: auto;
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 20px;
+  border-top: 1px solid #f0f0f0;
 }
 
 .form-section {
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 
 .form-section h4 {
   margin: 0 0 16px 0;
   font-size: 16px;
+  font-weight: 600;
   color: #333;
-  border-left: 3px solid #1890ff;
-  padding-left: 8px;
 }
 
 .section-header {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .section-header h4 {
   margin: 0;
-  border: none;
-  padding: 0;
 }
 
 .form-grid {
@@ -639,9 +667,10 @@ const handleSave = () => {
 }
 
 .form-item label {
-  min-width: 90px;
+  white-space: nowrap;
   color: #333;
   font-weight: 500;
+  min-width: 90px;
 }
 
 .form-item input[type="text"],
@@ -661,13 +690,10 @@ const handleSave = () => {
 .form-item input[type="checkbox"] {
   width: 16px;
   height: 16px;
-  cursor: pointer;
 }
 
 .field-table-wrapper {
   overflow-x: auto;
-  border: 1px solid #f0f0f0;
-  border-radius: 4px;
 }
 
 .field-table {
@@ -678,10 +704,10 @@ const handleSave = () => {
 
 .field-table th,
 .field-table td {
-  padding: 10px 8px;
+  padding: 8px;
   text-align: left;
-  border-bottom: 1px solid #f0f0f0;
-  white-space: nowrap;
+  border: 1px solid #f0f0f0;
+  font-size: 13px;
 }
 
 .field-table th {
@@ -694,12 +720,24 @@ const handleSave = () => {
   background: #f5f5f5;
 }
 
-.dialog-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  padding: 16px 20px;
-  border-top: 1px solid #f0f0f0;
-  background: #fff;
+.field-input {
+  width: 100%;
+  padding: 4px 8px;
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+.field-input.small {
+  width: 60px;
+}
+
+.field-input:focus {
+  border-color: #1890ff;
+  outline: none;
+}
+
+.field-table td {
+  padding: 4px;
 }
 </style>
