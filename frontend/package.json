@@ -11,7 +11,10 @@
   "dependencies": {
     "vue": "^3.4.21",
     "axios": "^1.6.7",
-    "vue-router": "^4.3.0"
+    "vue-router": "^4.3.0",
+    "element-plus": "^2.5.6",
+    "epic-designer": "^1.1.8",
+    "@epic-designer/element-plus": "^1.1.0"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.0.4",

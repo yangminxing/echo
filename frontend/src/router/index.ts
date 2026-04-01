@@ -2,6 +2,7 @@ import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 import Login from '../views/Login.vue'
 import Home from '../views/Home.vue'
 import FormDesigner from '../views/designer/FormDesigner.vue'
+import FormEditor from '../views/designer/FormEditor.vue'
 import FlowDesigner from '../views/designer/FlowDesigner.vue'
 import FixedFormDev from '../views/developer/FixedFormDev.vue'
 
@@ -24,6 +25,11 @@ const routes: RouteRecordRaw[] = [
         path: 'form-designer',
         name: 'FormDesigner',
         component: FormDesigner
+      },
+      {
+        path: 'form-editor/:id?',
+        name: 'FormEditor',
+        component: FormEditor
       },
       {
         path: 'flow-designer',

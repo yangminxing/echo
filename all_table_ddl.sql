@@ -52,3 +52,19 @@ CREATE TABLE `echo_online_table_field` (
   PRIMARY KEY (`id`),
   KEY `idx_table_name` (`table_name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='固定表单字段配置';
+
+CREATE TABLE `echo_form_definition` (
+                                        `id` varchar(36) NOT NULL COMMENT '主键ID',
+                                        `form_name` varchar(100) NOT NULL COMMENT '表单名称',
+                                        `form_version` int DEFAULT 1 COMMENT '表单版本',
+                                        `form_schema` text COMMENT '表单JSON配置',
+                                        `status` varchar(20) DEFAULT '草稿' COMMENT '状态(草稿/已发布)',
+                                        `description` varchar(500) DEFAULT NULL COMMENT '表单描述',
+                                        `create_by` varchar(50) DEFAULT NULL COMMENT '创建人',
+                                        `create_time` datetime DEFAULT NULL COMMENT '创建时间',
+                                        `update_by` varchar(50) DEFAULT NULL COMMENT '更新人',
+                                        `update_time` datetime DEFAULT NULL COMMENT '更新时间',
+                                        PRIMARY KEY (`id`),
+                                        KEY `idx_form_name` (`form_name`),
+                                        KEY `idx_create_time` (`create_time`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='表单定义表';
