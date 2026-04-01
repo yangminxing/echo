@@ -14,6 +14,6 @@
 
 ## 感谢
 
-感谢 [epic](https://github.com/yyx9527/epic) 表单组件
+感谢 [epic-designer](https://github.com/Kchengz/epic-designer) 表单组件
 
-Thanks to [epic](https://github.com/yyx9527/epic) form component for its inspiration and assistance.
+Thanks to [epic-designer](https://github.com/Kchengz/epic-designer) form component for its inspiration and assistance.
