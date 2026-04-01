@@ -28,3 +28,7 @@ export const updateForm = (data: FormDefinition) => {
 export const deleteForm = (id: string) => {
   return axios.delete<boolean>(`${API_PREFIX}/${id}`)
 }
+
+export const syncToPhysicalTable = (id: string) => {
+  return axios.post<boolean>(`${API_PREFIX}/sync/${id}`)
+}

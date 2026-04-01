@@ -68,3 +68,8 @@ CREATE TABLE `echo_form_definition` (
                                         KEY `idx_form_name` (`form_name`),
                                         KEY `idx_create_time` (`create_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='表单定义表';
+
+ALTER TABLE echo_form_definition
+    ADD COLUMN table_name VARCHAR(100) COMMENT '物理表名' AFTER form_schema,
+ADD COLUMN sync_status VARCHAR(20) DEFAULT '未同步' COMMENT '同步状态' AFTER table_name,
+ADD COLUMN sync_time DATETIME COMMENT '同步时间' AFTER sync_status;

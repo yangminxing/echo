@@ -15,12 +15,20 @@
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column prop="description" label="描述" min-width="200" show-overflow-tooltip />
+      <el-table-column prop="syncStatus" label="同步状态" width="100">
+        <template #default="{ row }">
+          <el-tag :type="row.syncStatus === '已同步' ? 'success' : 'warning'">
+            {{ row.syncStatus || '未同步' }}
+          </el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column prop="tableName" label="物理表名" width="150" show-overflow-tooltip />
+      <el-table-column prop="description" label="描述" min-width="150" show-overflow-tooltip />
       <el-table-column prop="createTime" label="创建时间" width="180" />
-      <el-table-column prop="updateTime" label="更新时间" width="180" />
-      <el-table-column label="操作" width="200" fixed="right">
+      <el-table-column label="操作" width="280" fixed="right">
         <template #default="{ row }">
           <el-button type="primary" link @click="handleDesign(row)">表单设计</el-button>
+          <el-button type="success" link @click="handleSync(row)" :loading="row.syncing">同步物理表</el-button>
           <el-button type="danger" link @click="handleDelete(row)">删除</el-button>
         </template>
       </el-table-column>
@@ -32,7 +40,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { getFormList, deleteForm } from '../../api/formDesigner'
+import { getFormList, deleteForm, syncToPhysicalTable } from '../../api/formDesigner'
 import type { FormDefinition } from '../../types/formDesigner'
 
 const router = useRouter()
@@ -57,6 +65,31 @@ const handleAdd = () => {
 
 const handleDesign = (row: FormDefinition) => {
   router.push(`/home/form-editor/${row.id}`)
+}
+
+const handleSync = async (row: FormDefinition) => {
+  try {
+    await ElMessageBox.confirm(
+      `确定要将表单「${row.formName}」同步为物理表吗？\n这将创建或更新数据库表结构。`,
+      '同步确认',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    )
+    
+    row.syncing = true
+    await syncToPhysicalTable(row.id)
+    ElMessage.success('同步成功')
+    loadFormList()
+  } catch (error) {
+    if (error !== 'cancel') {
+      ElMessage.error('同步失败: ' + (error as any).message)
+    }
+  } finally {
+    row.syncing = false
+  }
 }
 
 const handleDelete = async (row: FormDefinition) => {

@@ -20,6 +20,12 @@ public class FormDefinition {
 
     private String formSchema;
 
+    private String tableName;
+
+    private String syncStatus;
+
+    private Date syncTime;
+
     private String status;
 
     private String description;

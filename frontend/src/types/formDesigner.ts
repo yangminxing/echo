@@ -3,6 +3,9 @@ export interface FormDefinition {
   formName: string
   formVersion: number
   formSchema: string
+  tableName: string
+  syncStatus: string
+  syncTime: string
   status: string
   description: string
   createBy: string

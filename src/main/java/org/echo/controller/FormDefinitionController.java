@@ -45,4 +45,9 @@ public class FormDefinitionController {
     public boolean delete(@PathVariable String id) {
         return formDefinitionService.delete(id);
     }
+
+    @PostMapping("/sync/{id}")
+    public boolean syncToPhysicalTable(@PathVariable String id) {
+        return formDefinitionService.syncToPhysicalTable(id);
+    }
 }
